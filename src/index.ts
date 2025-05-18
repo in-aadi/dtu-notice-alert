@@ -1,15 +1,8 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import fs from 'fs/promises';
+import { db } from '../lib/db';
 
 const SITE_URL = 'https://dtu.ac.in';
-const HISTORY_FILE = './history.json';
-
-interface Notice {
-  heading: string;
-  pdfLink: string;
-  uploadDate: string;
-}
 
 export async function checkForNewNotice(): Promise<void> {
   const res = await axios.get(SITE_URL);
@@ -22,23 +15,28 @@ export async function checkForNewNotice(): Promise<void> {
   const pdfLink = new URL(rawLink, SITE_URL).href;
   const uploadDate = latestNotice.find('small > em > i').text().trim();
 
-  const current: Notice = { heading, pdfLink, uploadDate };
-
-  let previous: Notice | null = null;
   try {
-    const data = await fs.readFile(HISTORY_FILE, 'utf-8');
-    previous = JSON.parse(data);
-  } catch (e) {
-    console.log('📂 No history found. Creating new.');
-  }
-
-  if (!previous || previous.pdfLink !== current.pdfLink) {
-    console.log('🆕 New notice detected!');
-    console.log(current);
-    await fs.writeFile(HISTORY_FILE, JSON.stringify(current, null, 2));
-    // ⏭️ Call OCR or notification here
-  } else {
-    console.log('✅ No new notice.');
+    const previous = await db.notice.findFirst({
+      where: {
+        pdfLink
+      },
+    });
+  
+    if (!previous) {
+      await db.notice.create({
+      data: {
+          heading,
+          pdfLink,
+          uploadDate,
+          embedded: false, 
+        },
+      });
+      console.log('✅ New notice added:', heading);
+    } else {
+      console.log('No new notice found');
+    }
+  } catch (error) {
+    console.error('Error checking for new notice:', error);
   }
 }
 

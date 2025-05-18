@@ -23,17 +23,3 @@ jobs:
 
       - name: Run notice checker
         run: npm start
-        
-      - name: Commit updated history.json
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
-          git add history.json
-          if ! git diff --cached --quiet; then
-            git commit -m "Update history.json with latest notice"
-            git push "https://${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
-          else
-            echo "No changes in history.json"
-          fi

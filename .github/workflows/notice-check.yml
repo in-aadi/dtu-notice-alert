@@ -23,7 +23,8 @@ jobs:
 
       - name: Run notice checker
         run: npm start
-        - name: Commit updated history.json
+        
+      - name: Commit updated history.json
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"

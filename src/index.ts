@@ -41,3 +41,5 @@ export async function checkForNewNotice(): Promise<void> {
     console.log('✅ No new notice.');
   }
 }
+
+checkForNewNotice();
